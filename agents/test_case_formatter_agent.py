@@ -32,6 +32,6 @@ class TestCaseFormatterAgent:
         for idx, raw_test_case in enumerate(raw_test_cases, start=1):
             prompt = test_case_format_prompt.format(test_case=raw_test_case)
             response = self.llm.invoke(prompt)
-            formatted_tests.append(response)
+            formatted_tests.append(response.content)
 
         return formatted_tests
