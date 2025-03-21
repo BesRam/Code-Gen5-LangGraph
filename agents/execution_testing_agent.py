@@ -65,7 +65,12 @@ class ExecutionTestingAgent:
                 passed = False
 
             code_id = f"code_{i+1}"
-            results[code_id] = passed
+            passed = completed.returncode == 0
+            results[code_id] = {
+                "passed": passed,
+                "report": completed.stdout.strip(),
+                "code": cleaned_code
+            }
 
             if passed:
                 filtered_codes.append(cleaned_code)
