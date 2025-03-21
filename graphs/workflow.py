@@ -10,6 +10,7 @@ from graphs.input_processor_node import InputProcessorNode
 from graphs.general_answer_node import GeneralAnswerNode
 from graphs.code_generation_node import CodeGenerationNode
 from graphs.test_generation_node import TestGenerationNode
+from graphs.test_formatter_node import TestFormatterNode
 
 # Define shared state
 class WorkflowState(dict):
@@ -22,12 +23,15 @@ class WorkflowState(dict):
     generated_codes: list
     valid_test_cases: list
     invalid_test_cases: list
+    formatted_valid_tests: list
+    formatted_invalid_tests: list
 
 # Step 1: Initialize nodes
 input_processor_node = InputProcessorNode()
 general_answer_node = GeneralAnswerNode()
 code_generation_node = CodeGenerationNode()
 test_generation_node = TestGenerationNode()
+test_formatter_node = TestFormatterNode()
 
 # Step 2: Define graph
 workflow = StateGraph(WorkflowState)
@@ -36,6 +40,7 @@ workflow.add_node("input_processor", input_processor_node)
 workflow.add_node("generate_general_answer", general_answer_node)
 workflow.add_node("code_generation_node", code_generation_node)
 workflow.add_node("test_generation", test_generation_node)
+workflow.add_node("test_formatter", test_formatter_node)
 
 def route_request_type(state: dict):
     if state["request_type"] == "general":
@@ -55,7 +60,16 @@ workflow.add_conditional_edges(
 )
 workflow.add_edge("generate_general_answer", END)
 workflow.add_edge("code_generation_node", "test_generation")
-workflow.add_edge("test_generation", END)
+workflow.add_edge("test_generation", "test_formatter")
+workflow.add_edge("test_formatter", END)
 
 # Step 5: Compile the graph
 app = workflow.compile()
+
+# Step 6: Expose only final formatted test output for display
+def run_workflow(user_input: str):
+    final_state = app.invoke({"user_input": user_input})
+    return {
+        "formatted_valid_tests": final_state.get("formatted_valid_tests", [])[-1] if final_state.get("formatted_valid_tests") else None,
+        "formatted_invalid_tests": final_state.get("formatted_invalid_tests", [])[-1] if final_state.get("formatted_invalid_tests") else None
+    }
