@@ -33,9 +33,9 @@ class InputProcessingAgent:
         Returns:
             dict: Structured information with classification and extracted content.
         """
-        prompt = input_processing_prompt.format(user_input=user_input)
+        prompt = input_processing_prompt.format_prompt(user_input=user_input)
 
         response = self.llm.invoke(prompt)
-        result = self.parser.parse(response)
+        result = self.parser.parse(response.content)
 
         return result
