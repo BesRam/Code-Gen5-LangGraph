@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
-from langchain.chat_models import ChatOpenAI
-from langchain.output_parsers import JsonOutputParser
+from langchain_openai import ChatOpenAI
+from langchain_core.output_parsers import JsonOutputParser
 from prompts.input_processing_prompt import input_processing_prompt
 
 
@@ -19,7 +19,7 @@ class InputProcessingAgent:
         self.llm = ChatOpenAI(
             model=model_name,
             temperature=temperature,
-            openai_api_key=os.getenv("OPENAI_API_KEY")  # Fetch from .env
+            api_key=os.getenv("OPENAI_API_KEY")  # Fetch from .env
         )
         self.parser = JsonOutputParser()
 

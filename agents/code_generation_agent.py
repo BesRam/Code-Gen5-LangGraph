@@ -6,8 +6,8 @@ Generates Python code to compute risk weights based on Basel III regulatory text
 import os
 from dotenv import load_dotenv
 from typing import List
-from langchain.chat_models import ChatOpenAI
-from prompts.code_generation_prompt import code_generation_prompt
+from langchain_openai import ChatOpenAI
+from prompts.code_generation_prompt import code_gen_prompt
 
 load_dotenv()
 
@@ -19,10 +19,10 @@ class CodeGenerationAgent:
         self.llm = ChatOpenAI(
             model=model_name,
             temperature=temperature,
-            openai_api_key=os.getenv("OPENAI_API_KEY")
+            api_key=os.getenv("OPENAI_API_KEY")
         )
 
-    def generate_code_variants(self, regulatory_text: str, assumptions: str, input_variables: List[str], count: int = 10) -> List[str]:
+    def generate_code_variants(self, regulatory_text: str, assumptions: str, input_variables: List[str], count: int = 3) -> List[str]:
         """
         Generates multiple code implementations based on the same input.
 
@@ -38,12 +38,12 @@ class CodeGenerationAgent:
         generated_codes = []
 
         for _ in range(count):
-            prompt = code_generation_prompt.format(
+            prompt = code_gen_prompt.format(
                 regulatory_text=regulatory_text,
                 assumptions=assumptions,
                 input_variables=", ".join(input_variables)
             )
             response = self.llm.invoke(prompt)
-            generated_codes.append(response.strip())
+            generated_codes.append(response)
 
         return generated_codes
