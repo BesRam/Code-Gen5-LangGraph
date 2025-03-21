@@ -25,5 +25,5 @@ class GeneralAnswerNode(Runnable):
         answer = self.llm.invoke(general_answer_prompt.format(user_input=user_input))
 
         return {
-            "final_output": answer.content.strip()
+            "general_answer": answer.content.strip()
         }
