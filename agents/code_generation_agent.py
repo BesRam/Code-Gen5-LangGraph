@@ -22,7 +22,7 @@ class CodeGenerationAgent:
             api_key=os.getenv("OPENAI_API_KEY")
         )
 
-    def generate_code_variants(self, regulatory_text: str, assumptions: str, input_variables: str, count: int = 3) -> List[str]:
+    def generate_code_variants(self, regulatory_text: str, assumptions: str, input_variables: str, num_variants: int = 3) -> List[str]:
         """
         Generates multiple code implementations based on the same input.
 
@@ -37,7 +37,7 @@ class CodeGenerationAgent:
         """
         generated_codes = []
 
-        for _ in range(count):
+        for _ in range(num_variants):
             prompt = code_gen_prompt.format(
                 regulatory_text=regulatory_text,
                 assumptions=assumptions,
