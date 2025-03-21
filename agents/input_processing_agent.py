@@ -8,7 +8,7 @@ from prompts.input_processing_prompt import input_processing_prompt
 load_dotenv()
 
 class InputProcessingAgent:
-    def __init__(self, model_name: str = "gpt-4", temperature: float = 0.0):
+    def __init__(self, model_name: str = "gpt-4o", temperature: float = 0.0):
         """
         Initializes the agent with an OpenAI model.
         
