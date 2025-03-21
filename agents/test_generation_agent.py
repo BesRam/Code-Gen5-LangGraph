@@ -29,7 +29,7 @@ class TestGenerationAgent:
         assumptions: str,
         input_variables: str,
         test_type: str = "valid",  # or "invalid"
-        count: int = 10
+        num_cases: int = 10
     ) -> List[str]:
         
         """
@@ -48,7 +48,7 @@ class TestGenerationAgent:
 
         test_cases = []
 
-        for _ in range(count):
+        for _ in range(num_cases):
             prompt = test_case_prompt.format(
                 regulatory_text=regulatory_text,
                 assumptions=assumptions,
