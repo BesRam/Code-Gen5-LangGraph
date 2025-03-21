@@ -17,11 +17,9 @@ If it is a code_request, extract the following:
 {user_input}
 
 ### Output Format (in JSON):
-{
   "request_type": "...",            // "general" or "code_request"
   "regulatory_text": "...",         // required if code_request
   "assumptions": "...",             // required if code_request
-  "input_variables": ["..."]        // required if code_request
-}
+  "input_variables": "..."        // required if code_request
 Only return the JSON, nothing else.
 """)
