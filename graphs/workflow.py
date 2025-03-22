@@ -14,6 +14,7 @@ from graphs.test_formatter_node import TestFormatterNode
 from graphs.human_test_selector_node import HumanTestSelectorNode
 from graphs.execution_filtering_node import ExecutionFilteringNode
 from graphs.scoring_and_ranking_node import ScoringNode
+from graphs.code_optimizer_node import CodeOptimizerNode
 
 # Define shared state
 class WorkflowState(dict):
@@ -38,6 +39,8 @@ class WorkflowState(dict):
     regeneration_input: dict
     scoring_results: list
     best_code: str
+    evaluation_summary: str
+    optimized_code: str
 
 # Step 1: Initialize nodes
 input_processor_node = InputProcessorNode()
@@ -123,11 +126,14 @@ def run_workflow(user_input: str):
 
     if final_state.get("scoring_results"):
         print("\n📊 Scoring Results:")
-        for score in final_state["scoring_results"]:
-            print(score)
+        print(len(final_state["scoring_results"]))
 
     if final_state.get("best_code"):
         print("\n🏆 Best Code:")
         print(final_state["best_code"])
+
+    if final_state.get("optimized_code"):
+        print("\n🚀 Optimized Code:")
+        print(final_state["optimized_code"])
 
     return final_state
