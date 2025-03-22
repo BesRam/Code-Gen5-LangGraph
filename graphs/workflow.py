@@ -132,8 +132,4 @@ def run_workflow(user_input: str):
         print("\n🏆 Best Code:")
         print(final_state["best_code"])
 
-    if final_state.get("optimized_code"):
-        print("\n🚀 Optimized Code:")
-        print(final_state["optimized_code"])
-
     return final_state
