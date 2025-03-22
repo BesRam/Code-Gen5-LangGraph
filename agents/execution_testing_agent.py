@@ -46,8 +46,13 @@ class ExecutionTestingAgent:
         filtered_codes = []
 
         for i, raw_code in enumerate(codes):
-            cleaned_code = self.clean_code_block(raw_code)
-            full_code = f"{cleaned_code}\n\n" + "\n\n".join([self.clean_code_block(tc) for tc in test_cases])
+            code_str = raw_code.content if hasattr(raw_code, "content") else raw_code
+            cleaned_code = self.clean_code_block(code_str)
+            test_strs = [
+                tc.content if hasattr(tc, "content") else tc
+                for tc in test_cases
+            ]
+            full_code = f"{cleaned_code}\n\n" + "\n\n".join([self.clean_code_block(tc) for tc in test_strs])
 
             with tempfile.NamedTemporaryFile(suffix="_test.py", delete=False, mode="w") as f:
                 f.write(full_code)
