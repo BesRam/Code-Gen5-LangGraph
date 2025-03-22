@@ -13,6 +13,7 @@ from graphs.test_generation_node import TestGenerationNode
 from graphs.test_formatter_node import TestFormatterNode
 from graphs.human_test_selector_node import HumanTestSelectorNode
 from graphs.execution_filtering_node import ExecutionFilteringNode
+from graphs.scoring_and_ranking_node import ScoringNode
 
 # Define shared state
 class WorkflowState(dict):
@@ -35,6 +36,8 @@ class WorkflowState(dict):
     execution_report_final: dict
     regenerate_code: bool
     regeneration_input: dict
+    scoring_results: list
+    best_code: str
 
 # Step 1: Initialize nodes
 input_processor_node = InputProcessorNode()
@@ -44,6 +47,7 @@ test_generation_node = TestGenerationNode()
 test_formatter_node = TestFormatterNode()
 human_test_selector_node = HumanTestSelectorNode()
 execution_filtering_node = ExecutionFilteringNode()
+scoring_node = ScoringNode()
 
 # Step 2: Define graph
 workflow = StateGraph(WorkflowState)
@@ -56,6 +60,7 @@ workflow.add_node("test_formatter", test_formatter_node)
 workflow.add_node("select_complex_tests", human_test_selector_node)
 workflow.add_node("execution_filtering", execution_filtering_node)
 workflow.add_node("execution_filtering_all", ExecutionFilteringNode())
+workflow.add_node("scoring_node", scoring_node)
 
 def route_request_type(state: dict):
     if state["request_type"] == "general":
@@ -92,12 +97,14 @@ workflow.add_conditional_edges(
 # Phase 2: Filtering with full test suite
 workflow.add_conditional_edges(
     "execution_filtering_all",
-    lambda state: "regenerate_code" if state.get("regenerate_code") else "end",
+    lambda state: "regenerate_code" if state.get("regenerate_code") else "continue",
     {
         "regenerate_code": "code_generation_node",
-        "end": END
+        "continue": "scoring_node"
     }
 )
+
+workflow.add_edge("scoring_node", END)
 
 # Step 5: Compile the graph
 app = workflow.compile()
@@ -113,5 +120,14 @@ def run_workflow(user_input: str):
         print(f"\n✅ Total Passed Codes: {len(final_state['final_validated_codes'])}")
     else:
         print("\n❌ No code passed all test cases.")
+
+    if final_state.get("scoring_results"):
+        print("\n📊 Scoring Results:")
+        for score in final_state["scoring_results"]:
+            print(score)
+
+    if final_state.get("best_code"):
+        print("\n🏆 Best Code:")
+        print(final_state["best_code"])
 
     return final_state
