@@ -29,6 +29,30 @@ class ExecutionTestingAgent:
         """
         return re.sub(r"```(?:python)?|```", "", code).strip()
 
+    def rename_test_functions(self, test_cases: List[str]) -> List[str]:
+        """
+        Renames all test functions to unique names (e.g. test_case_1, test_case_2, ...)
+        to avoid naming collisions during pytest execution.
+        """
+        renamed_tests = []
+        for i, tc in enumerate(test_cases):
+            cleaned = self.clean_code_block(tc)
+            renamed = re.sub(r"def test_\w+", f"def test_case_{i+1}", cleaned)
+            renamed_tests.append(renamed)
+        return renamed_tests
+
+    def _extract_test_results(self, raw_output: str) -> List[bool]:
+        """
+        Parses pytest output to identify which test cases passed/failed.
+        Simplified: assumes each line starting with "." = pass, "F" = fail.
+        """
+        if not raw_output:
+            return []
+
+        lines = raw_output.strip().splitlines()
+        test_line = next((line for line in lines if set(line.strip()) <= set(".F")), "")
+        return [c == "." for c in test_line.strip()] if test_line else []
+    
     def run_tests(self, codes: List[str], test_cases: List[str]) -> Tuple[Dict[str, bool], List[str]]:
         """
         Runs all test cases against each code snippet individually.
@@ -45,14 +69,12 @@ class ExecutionTestingAgent:
         results = {}
         filtered_codes = []
 
+        renamed_tests = self.rename_test_functions(test_cases)
+
         for i, raw_code in enumerate(codes):
             code_str = raw_code.content if hasattr(raw_code, "content") else raw_code
             cleaned_code = self.clean_code_block(code_str)
-            test_strs = [
-                tc.content if hasattr(tc, "content") else tc
-                for tc in test_cases
-            ]
-            full_code = f"{cleaned_code}\n\n" + "\n\n".join([self.clean_code_block(tc) for tc in test_strs])
+            full_code = f"{cleaned_code}\n\n" + "\n\n".join(renamed_tests)
 
             with tempfile.NamedTemporaryFile(suffix="_test.py", delete=False, mode="w") as f:
                 f.write(full_code)
@@ -68,13 +90,21 @@ class ExecutionTestingAgent:
                 passed = completed.returncode == 0
             except Exception:
                 passed = False
+                completed = None
 
             code_id = f"code_{i+1}"
-            passed = completed.returncode == 0
+            print(f"\n🔎 Testing {code_id}... {'✅ PASSED' if passed else '❌ FAILED'}")
+
+            if completed:
+                summary_lines = completed.stdout.strip().split("\n")
+                print(f"--- Pytest Output for {code_id} ---")
+                print("\n".join(summary_lines))
+
             results[code_id] = {
                 "passed": passed,
-                "report": completed.stdout.strip(),
-                "code": cleaned_code
+                "report": completed.stdout.strip() if completed else "Test execution error",
+                "code": cleaned_code,
+                "individual_test_results": self._extract_test_results(completed.stdout if completed else "")
             }
 
             if passed:
@@ -82,4 +112,5 @@ class ExecutionTestingAgent:
 
             os.remove(test_file_path)
 
+        print(f"\n✅ {len(filtered_codes)} out of {len(codes)} codes passed all tests.")
         return results, filtered_codes
