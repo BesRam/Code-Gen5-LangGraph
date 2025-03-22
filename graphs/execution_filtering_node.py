@@ -16,6 +16,7 @@ class ExecutionFilteringNode(Runnable):
         is_second_pass = "filtered_codes" in state
 
         if is_second_pass:
+            print("\n🔁 Phase 2: Running full test suite on previously filtered codes...")
             # ✅ Second phase: validate passed codes against ALL tests
             codes = state["filtered_codes"]
             test_suite = state.get("formatted_valid_tests", []) + state.get("formatted_invalid_tests", [])
@@ -36,6 +37,7 @@ class ExecutionFilteringNode(Runnable):
             }
 
         else:
+            print("\n🚦 Phase 1: Running initial filtering with selected complex test cases...")
             # ✅ First phase: test all generated codes against 2 selected tests
             codes = state["generated_codes"]
             valid_test = state.get("selected_valid_test", "")
